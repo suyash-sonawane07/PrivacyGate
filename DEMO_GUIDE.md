@@ -77,7 +77,7 @@ Run this one-liner to show all system checks passing in real time:
 
 ```bash
 # 1. Activate environment
-cd /Users/sher/Downloads/Gemma/BeyondNexus
+cd PrivacyGate
 source .venv/bin/activate
 set -a; source .env; set +a
 
@@ -176,7 +176,7 @@ python scripts/validate_iteration.py --record
 
 ## 🏆 Milestone Summary
 
-- **GitHub Repository:** [`https://github.com/yashwaghh/BeyondNexus.git`](https://github.com/yashwaghh/BeyondNexus.git)
+- **GitHub Repository:** [`https://github.com/suyash-sonawane07/PrivacyGate.git`](https://github.com/suyash-sonawane07/PrivacyGate.git)
 - **Validation Report:** [`VALIDATION_REPORT.md`](VALIDATION_REPORT.md)
 - **Implementation Status:** [`PROGRESS.md`](PROGRESS.md)
 - **Target Hardware Tested:** Apple Silicon M1, 8 GB RAM, macOS Darwin 27.0.0

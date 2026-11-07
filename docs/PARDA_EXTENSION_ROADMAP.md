@@ -51,7 +51,7 @@ Host: `Darwin 27.0.0 arm64` (Apple Silicon, Apple M1-class, 8 GB class machine),
 ## 3. Repository inventory (audit-time evidence)
 
 ```
-BeyondNexus/
+PrivacyGate/
 ├── privacygate/            Python package (stdlib + Pillow/pypdf/pypdfium2)
 │   ├── detectors.py        rules: EMAIL/PAN/AADHAAR(+Verhoeff)/PHONE/BANK_ACCOUNT, merge_nonoverlapping (96 lines)
 │   ├── pipeline.py         review_text(), sanitize(), statuses (98)

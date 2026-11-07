@@ -1,6 +1,6 @@
 # PrivacyGate — Local-First PII Pre-Sharing Defense & Review Bridge
 
-[![macOS Apple Silicon & Linux](https://img.shields.io/badge/platform-macOS%20Apple%20Silicon%20%7C%20Linux-brightgreen)](https://github.com/yashwaghh/BeyondNexus)
+[![macOS Apple Silicon & Linux](https://img.shields.io/badge/platform-macOS%20Apple%20Silicon%20%7C%20Linux-brightgreen)](https://github.com/suyash-sonawane07/PrivacyGate)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Chrome Extension MV3](https://img.shields.io/badge/chrome%20extension-MV3-orange)](https://developer.chrome.com/docs/extensions/)
 [![On-Device Gemma 4](https://img.shields.io/badge/model-Gemma%204%20E2B%20(LM%20Studio)-purple)](https://ai.google.dev/gemma)
@@ -27,7 +27,7 @@ This section provides deterministic, copy-pasteable execution commands for autom
 ### Quick One-Liner Test Execution
 ```bash
 # Clone and enter directory
-cd BeyondNexus
+cd PrivacyGate
 
 # Setup isolated environment
 python3 -m venv .venv
@@ -126,7 +126,7 @@ python -m privacygate.macos_check --smoke --timeout 75
 ### Step 2: Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** in the top-right corner.
-3. Click **Load unpacked** and select the [`extension/`](file:///Users/sher/Downloads/Gemma/BeyondNexus/extension) directory.
+3. Click **Load unpacked** and select the [`extension/`](extension) directory.
 4. Note the generated **Extension ID** (e.g., `jgaikamaijaibmcmaplbcnapkkbgdnbl`).
 
 ### Step 3: Launch the Local Bridge Server
@@ -202,7 +202,7 @@ python -m privacygate.web --extension-origin chrome-extension://YOUR_EXTENSION_I
 ## 📁 Complete Repository Architecture
 
 ```
-BeyondNexus/
+PrivacyGate/
 ├── .env.example                 # Configuration environment template
 ├── .gitignore                   # Git exclusion rules (safeguards secrets & venvs)
 ├── AGENTS.md                    # Multi-agent coordination protocols & task gates

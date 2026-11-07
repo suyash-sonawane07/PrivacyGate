@@ -255,6 +255,7 @@ def _load_env_file() -> None:
     for candidate in (
         Path.cwd() / ".env",
         Path(__file__).resolve().parent.parent / ".env",
+        Path.cwd() / "PrivacyGate" / ".env",
         Path.cwd() / "BeyondNexus" / ".env",
     ):
         if candidate.is_file():
