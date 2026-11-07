@@ -1,0 +1,62 @@
+# Reviewed redaction and export
+
+Extension v0.4.0 and the local UI now support editable masks and explicit file export. Existing 6 MB / 5-page / 2200-pixel render limits remain. No new Python dependency or extension permission was introduced.
+
+## Use
+
+1. Pull the update, reinstall the editable package if needed, restart the local bridge and reload the unpacked extension. Keep local Tesseract/language data and Gemma available as described in ITERATION_3.md.
+2. Choose an image or small PDF and run file review. Missing/failed required OCR or vision blocks export.
+3. Inspect every page. Detected located findings become default masks. Drag on a page to add a mask, or use Mask whole page for a conservative fallback; Remove deletes a mask so you can redraw it. Draw additional masks for missed/unlocated information. The list contains mask numbers, which can differ from original finding numbers after edits.
+4. Select Show masked preview. Inspect the black masks, then check the separate export-review checkbox. Changing masks or preview mode revokes approval and removes any prepared download.
+5. Prepare redacted PNG (single page) or PDF (one or more pages), then click the download link. Inspect the downloaded copy before manually attaching/sharing it.
+
+The original annotated PNG download remains explicitly NOT redacted and contains identifying pixels. Redacted exports have a separate download link. Nothing is automatically attached or sent to ChatGPT.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Completed local OCR and vision review] --> B[15-minute file-bound export ticket]
+    A --> C[Detected masks and original page preview]
+    C --> D[User adds or removes masks]
+    D --> E[Masked preview and explicit approval]
+    B --> F[Authenticated local export request]
+    E --> F
+    F --> G[Re-render exact original file]
+    G --> H[Overwrite selected pixels with black]
+    H --> I[Fresh RGB PNG or lossless image-only PDF]
+    I --> J[Explicit local download]
+```
+
+`privacygate/redaction.py` reuses the same normalized image/PDF rendering path as review. Normalized integer boxes map to pixels with outward rounding and two extra pixels of padding; the editor shows the same mask bounds. A fresh RGB buffer holds masked pixels. PNG ancillary metadata is omitted. PDF export creates new PDF pages and Flate-compressed RGB image streams; it copies no original page objects, fonts, text layers, annotations, attachments, metadata or form fields. Source PDF page dimensions are retained as rendered (including rotation/crop); image-to-PDF uses pixel dimensions as PDF points. Exported PDFs are rasterized, lose searchability/accessibility/vector quality, and are limited to review render resolution. Digital signatures and interactive features are not retained. The original file is never overwritten.
+
+`/v1/redact-export` retains exact-origin, bearer authentication, no-store, request-size and concurrency limits. A completed non-blocked file scan issues an HMAC-SHA256 ticket over expiry, source media type and SHA256 of original bytes. Tickets last 15 minutes and become invalid on bridge restart. Export requires the same source bytes, valid ticket, strict region bounds (maximum 500), supported output type and JSON boolean reviewed=true. A ticket proves only that configured detectors completed for those bytes; it is not proof of detection accuracy. This is a local human-controlled tool, not an attestation that a checkbox was meaningfully reviewed.
+
+No source or generated file is cached on disk by the bridge. The browser retains private preview/source bytes in memory for the active result. Input/mode/config changes, tab disconnects, new scans and Clear invalidate previews and prepared download URLs; mask edits invalidate prepared exports. Export fetches have a 60-second timeout and are aborted on invalidation. Downloaded files remain on disk until the user deletes them. Logs omit request bodies and raw content.
+
+## Extension improvements
+
+- Separate file-review display from text approval/copy/insert controls; a file result cannot authorize text insertion.
+- Add Cancel review and reject stale responses. Cancel aborts browser waiting; an already-running bridge/model task can continue until its own timeout and occupy a scanner slot.
+- Allow up to 14 minutes for five pages of sequential 120-second Gemma and 30-second OCR work, with overhead; this does not claim measured latency.
+- Reuse one shared preview/editor for web and extension; no external script/runtime or download permission.
+
+## Validation and limitations
+
+Python tests check exact masked pixels, padding, unchanged unmasked pixels, lossless PDF raster contents, text/metadata/attachment exclusion, preserved page count/dimensions, invalid geometry, strict approval, auth, file binding, missing/tampered/expired tickets, and blocked-scan behavior. Chromium integration runs the installed extension against the real bridge with synthetic OCR/model doubles: draw/remove masks, approval reset, binary PNG pixel verification, PNG/PDF downloads and stale-link invalidation. A two-page exported PDF is reopened and rendered for visual inspection.
+
+These checks establish removal of pixels inside selected masks and exclusion of source PDF structures. They do not establish that all personal information was detected or masked. Mask padding is a small boundary allowance, not a guarantee about an imprecise detector box. Native parser/process memory isolation, independent security audit, target-Mac OCR/Gemma quality, 8 GB memory/latency and the normal authenticated ChatGPT browser remain pending. Only synthetic documents are used in repository tests.
+
+## Refinement v0.4.1
+
+Undo restores up to 20 mask edits and revokes export approval. Mask whole page replaces that page's smaller masks rather than accumulating duplicates. A committed drag always revokes approval, including approval checked while a drag was in progress. Export responses must have the expected nonempty PNG/PDF MIME type before a download link appears. Local UI scans now have cancellation, timeouts and mutually exclusive buttons; late responses cannot revive an old result. Cancellation still does not terminate an already-running model process.
+
+All server PDFium work now shares a mutex, including scan and export paths. Export obtains page dimensions from the existing render pass rather than parsing a second time. PDFium requires this serialization even for separate documents ([upstream API documentation](https://pypdfium2.readthedocs.io/en/stable/python_api.html#incompatibility-with-threading)). Malformed export format values and non-ASCII auth headers return normal 400/401 responses.
+
+Additional tests cover rotated/cropped PDF alignment, JPEG EXIF orientation, ticket invalidation after bridge restart, concurrent PDF entry points, malformed requests, undo, approval during dragging, invalid export responses and local UI cancellation. Previous release GitHub CI was verified green on macOS arm64 Python 3.10/3.13 (including real Tesseract clean-fixture benchmark) and Ubuntu Chromium; this is distinct from live Gemma on the user's Mac.
+
+## Extension attachment integration v0.5.0
+The user authorized explicit attachment of a generated redacted export to ChatGPT. The side panel now provides that button after export preparation; the local web UI continues to offer downloads. Attach is a deliberate disclosure to the website, not a Send action. Tab/conversation, unique compatible picker, existing selection, MIME/signature and 10 MB transfer-limit checks precede isolated-world assignment of a generic privacygate-redacted filename. Picker assignment does not verify cloud upload completion. The earlier descriptions that nothing can be attached are historical for previous releases. See extension/README.md for the exact workflow and manual acceptance gate.
+
+## Aadhaar upload refinement (v0.5.1)
+Upload OCR now flags unlabeled 12-digit candidates even with invalid checksums, common digit/letter recognition errors, wrapped or spatially separated groups, and visible final digits in masked identifiers. Uncertain matches are labelled Possible identity number and automatically seed editable export masks. The checksum is evidence, never a reason to leave an upload identifier exposed. Text-only rules are unchanged. Every OCR/vision box still needs visual review; completely missed OCR regions require a manual mask. See PROGRESS.md for synthetic tests and remaining live-Mac validation.

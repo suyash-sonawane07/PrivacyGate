@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "privacygate-hackday"
+version = "0.2.0"
+description = "Local-first text, image, and small-PDF PII pre-sharing guardrail"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Hackathon team"}]
+dependencies = [
+  "Pillow>=10,<13",
+  "pypdf>=5,<7",
+  "pypdfium2>=4.30,<6",
+]
+
+[project.scripts]
+privacygate = "privacygate.__main__:main"
+privacygate-ui = "privacygate.web:main"
+privacygate-check-mac = "privacygate.macos_check:main"
+
+[tool.setuptools]
+packages = ["privacygate"]
+
+[tool.setuptools.package-data]
+privacygate = ["ui/*.html", "ui/*.js", "ui/*.css"]
